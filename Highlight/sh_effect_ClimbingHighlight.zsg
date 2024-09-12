@@ -1,0 +1,679 @@
+{
+    "data": {
+        "shaderName": "Geegaz/Climbing Highlight",
+        "properties": [
+            {
+                "guid": "525a41e8-b4de-47e9-8f2b-c3c258e15927",
+                "referenceName": "_Color",
+                "displayName": "Hand Color",
+                "type": 5,
+                "customAttributes": "",
+                "defaultAttributes": 16,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "(1.00, 1.00, 1.00, 0.50)",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "5d8431a1-d96b-4f4d-be34-d5d7a77ef20d",
+                "referenceName": "_HandDistanceFeathering",
+                "displayName": "Hand Distance Feathering",
+                "type": 1,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "0.001",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "0bcaecb2-ec25-4f52-8f05-6a6cadfe5b74",
+                "referenceName": "_LeftHandDist",
+                "displayName": "Left Hand Distance",
+                "type": 1,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "1",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "02eb8a69-73a6-4d8c-9358-840fc216a720",
+                "referenceName": "_RightHandDist",
+                "displayName": "Right Hand Distance",
+                "type": 1,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "1",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "cf816e6d-cf93-4e97-bbcc-dba6aa8fb1ef",
+                "referenceName": "_ShadowColor",
+                "displayName": "Shadow Color",
+                "type": 5,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "(0.00, 0.00, 0.00, 0.50)",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "41e9e062-48d4-4fab-8daf-d778e1f7ffd6",
+                "referenceName": "_LeftHandPosition",
+                "displayName": "Left Hand Position",
+                "type": 4,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "",
+                "_defaultTexture": "",
+                "declaration": 0
+            },
+            {
+                "guid": "bebd8083-0deb-4e4c-98d6-dd5a3a5c09d1",
+                "referenceName": "_RightHandPosition",
+                "displayName": "Right Hand Position",
+                "type": 4,
+                "customAttributes": "",
+                "defaultAttributes": 0,
+                "rangeX": 0.0,
+                "rangeY": 0.0,
+                "_value": "",
+                "_defaultTexture": "",
+                "declaration": 0
+            }
+        ],
+        "precision": 0,
+        "defaultPreviewState": 0,
+        "customEditor": "",
+        "fallback": "",
+        "include": "",
+        "outlinePass": 0,
+        "stencil": false,
+        "vrcFallbackTags": {
+            "type": 0,
+            "mode": 0,
+            "doubleSided": false
+        }
+    },
+    "nodes": [
+        {
+            "type": "ZSG.MinNode",
+            "guid": "b9e2d90a-39ce-4b5a-9cf5-5d2317a70f2a",
+            "x": -1567,
+            "y": 320,
+            "connections": [
+                {
+                    "a": 3,
+                    "b": 0,
+                    "node": "ee26f5e3-55e3-4580-9c7a-d6e2a17770e3"
+                },
+                {
+                    "a": 3,
+                    "b": 1,
+                    "node": "0e5dac89-eac2-4521-9c0c-316f11bd0dda"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.SubtractNode",
+            "guid": "8b9f564d-1ea1-4660-96e3-f60e89bf97a6",
+            "x": -1865,
+            "y": 370,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "f8af4c9e-b129-4744-94d4-f5e683e865bf"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "f6a379b7-0dd0-40c7-af7c-7bb15fcc4eeb"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.FloatPropertyNode",
+            "guid": "f6a379b7-0dd0-40c7-af7c-7bb15fcc4eeb",
+            "x": -2068,
+            "y": 507,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"5d8431a1-d96b-4f4d-be34-d5d7a77ef20d\"}"
+        },
+        {
+            "type": "ZSG.AddNode",
+            "guid": "a026af75-6afe-4f6d-b473-7bf06d6c0556",
+            "x": -1865,
+            "y": 554,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "f8af4c9e-b129-4744-94d4-f5e683e865bf"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "f6a379b7-0dd0-40c7-af7c-7bb15fcc4eeb"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.SmoothstepNode",
+            "guid": "0e5dac89-eac2-4521-9c0c-316f11bd0dda",
+            "x": -1717,
+            "y": 467,
+            "connections": [
+                {
+                    "a": 2,
+                    "b": 0,
+                    "node": "8b9f564d-1ea1-4660-96e3-f60e89bf97a6"
+                },
+                {
+                    "a": 2,
+                    "b": 1,
+                    "node": "a026af75-6afe-4f6d-b473-7bf06d6c0556"
+                },
+                {
+                    "a": 2,
+                    "b": 2,
+                    "node": "9464fe12-c544-4904-bb95-2272cd123b86"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.FloatPropertyNode",
+            "guid": "f8af4c9e-b129-4744-94d4-f5e683e865bf",
+            "x": -2050,
+            "y": 442,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"02eb8a69-73a6-4d8c-9358-840fc216a720\"}"
+        },
+        {
+            "type": "ZSG.SubtractNode",
+            "guid": "3d572d90-26e8-4338-8c15-64254bbed78a",
+            "x": -1865,
+            "y": 0,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "1d6d6660-188e-4a4d-bd3e-49ee1338f10e"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "37381b81-ca0f-437c-ae62-f80da3475978"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.FloatPropertyNode",
+            "guid": "37381b81-ca0f-437c-ae62-f80da3475978",
+            "x": -2068,
+            "y": 137,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"5d8431a1-d96b-4f4d-be34-d5d7a77ef20d\"}"
+        },
+        {
+            "type": "ZSG.AddNode",
+            "guid": "8c878686-1e92-42db-aaf8-5d98018847a0",
+            "x": -1865,
+            "y": 184,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "1d6d6660-188e-4a4d-bd3e-49ee1338f10e"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "37381b81-ca0f-437c-ae62-f80da3475978"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.FloatPropertyNode",
+            "guid": "1d6d6660-188e-4a4d-bd3e-49ee1338f10e",
+            "x": -2043,
+            "y": 72,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"0bcaecb2-ec25-4f52-8f05-6a6cadfe5b74\"}"
+        },
+        {
+            "type": "ZSG.SmoothstepNode",
+            "guid": "ee26f5e3-55e3-4580-9c7a-d6e2a17770e3",
+            "x": -1717,
+            "y": 72,
+            "connections": [
+                {
+                    "a": 2,
+                    "b": 0,
+                    "node": "3d572d90-26e8-4338-8c15-64254bbed78a"
+                },
+                {
+                    "a": 2,
+                    "b": 1,
+                    "node": "8c878686-1e92-42db-aaf8-5d98018847a0"
+                },
+                {
+                    "a": 2,
+                    "b": 2,
+                    "node": "074540b6-7130-4fbc-aca8-0a46ab021066"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.PositionNode",
+            "guid": "c53c9ee4-0d0b-409e-b8c2-11771086ab57",
+            "x": -2096,
+            "y": 805,
+            "connections": [],
+            "precision": 0,
+            "preview": 2,
+            "previewDisabled": false,
+            "data": "{\"_space\":1}"
+        },
+        {
+            "type": "ZSG.Float4PropertyNode",
+            "guid": "f005c4fb-11ee-418b-8a11-cc9e8a7d78d3",
+            "x": -2117,
+            "y": 740,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"41e9e062-48d4-4fab-8daf-d778e1f7ffd6\"}"
+        },
+        {
+            "type": "ZSG.Float4PropertyNode",
+            "guid": "30e1c651-989f-4b8e-a236-c667c6457a10",
+            "x": -2124,
+            "y": 963,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"bebd8083-0deb-4e4c-98d6-dd5a3a5c09d1\"}"
+        },
+        {
+            "type": "ZSG.DistanceNode",
+            "guid": "074540b6-7130-4fbc-aca8-0a46ab021066",
+            "x": -1865,
+            "y": 740,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "f005c4fb-11ee-418b-8a11-cc9e8a7d78d3"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "c53c9ee4-0d0b-409e-b8c2-11771086ab57"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.DistanceNode",
+            "guid": "9464fe12-c544-4904-bb95-2272cd123b86",
+            "x": -1865,
+            "y": 939,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "c53c9ee4-0d0b-409e-b8c2-11771086ab57"
+                },
+                {
+                    "a": 0,
+                    "b": 1,
+                    "node": "30e1c651-989f-4b8e-a236-c667c6457a10"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.MinNode",
+            "guid": "9be97ac3-1fa1-4177-815f-185d0a119d21",
+            "x": -1542,
+            "y": 926,
+            "connections": [
+                {
+                    "a": 103,
+                    "b": 0,
+                    "node": "c6aeccae-22da-4f4d-9a61-b8ce274acc20"
+                },
+                {
+                    "a": 103,
+                    "b": 1,
+                    "node": "e4286ea2-a492-47a9-b16e-c00aee51bc64"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.OneMinusNode",
+            "guid": "a2e00d91-f786-415e-b408-e85423a329d8",
+            "x": -1438,
+            "y": 926,
+            "connections": [
+                {
+                    "a": 2,
+                    "b": 0,
+                    "node": "9be97ac3-1fa1-4177-815f-185d0a119d21"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.MaxNode",
+            "guid": "00917215-6907-49db-93e7-f472e470e1f2",
+            "x": -1334,
+            "y": 926,
+            "connections": [
+                {
+                    "a": 1,
+                    "b": 0,
+                    "node": "a2e00d91-f786-415e-b408-e85423a329d8"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.CustomFunctionNode",
+            "guid": "e4286ea2-a492-47a9-b16e-c00aee51bc64",
+            "x": -1738,
+            "y": 1043,
+            "connections": [
+                {
+                    "a": 2,
+                    "b": 0,
+                    "node": "9464fe12-c544-4904-bb95-2272cd123b86"
+                },
+                {
+                    "a": 3,
+                    "b": 2,
+                    "node": "8e386bdd-f181-4870-8d7f-e3ec5cf55732"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_code\":\"void CustomFunction(float3 In, out float3 Out)\\n{\\n    Out = In;\\n}\",\"_file\":\"10900000|b4c83ddc873a370449a8cb2be2e5c08e\",\"_useFile\":true}"
+        },
+        {
+            "type": "ZSG.SplitNode",
+            "guid": "a8945d6a-b891-4f1d-9faf-454a1134a2c9",
+            "x": -1963,
+            "y": 789,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 4,
+                    "node": "f005c4fb-11ee-418b-8a11-cc9e8a7d78d3"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.CustomFunctionNode",
+            "guid": "c6aeccae-22da-4f4d-9a61-b8ce274acc20",
+            "x": -1738,
+            "y": 813,
+            "connections": [
+                {
+                    "a": 2,
+                    "b": 0,
+                    "node": "074540b6-7130-4fbc-aca8-0a46ab021066"
+                },
+                {
+                    "a": 3,
+                    "b": 2,
+                    "node": "a8945d6a-b891-4f1d-9faf-454a1134a2c9"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_code\":\"void CustomFunction(float3 In, out float3 Out)\\n{\\n    Out = In;\\n}\",\"_file\":\"10900000|b4c83ddc873a370449a8cb2be2e5c08e\",\"_useFile\":true}"
+        },
+        {
+            "type": "ZSG.SplitNode",
+            "guid": "8e386bdd-f181-4870-8d7f-e3ec5cf55732",
+            "x": -1963,
+            "y": 1019,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 4,
+                    "node": "30e1c651-989f-4b8e-a236-c667c6457a10"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.ColorPropertyNode",
+            "guid": "9156794e-a16e-435f-8fb8-11a23b305200",
+            "x": -1186,
+            "y": 401,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"525a41e8-b4de-47e9-8f2b-c3c258e15927\"}"
+        },
+        {
+            "type": "ZSG.LerpNode",
+            "guid": "7f45c606-8d3e-4794-91d0-90d18daf38c0",
+            "x": -971,
+            "y": 401,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "9156794e-a16e-435f-8fb8-11a23b305200"
+                },
+                {
+                    "a": 2,
+                    "b": 1,
+                    "node": "0d8a2228-a95a-4297-801d-58e15d5a207a"
+                },
+                {
+                    "a": 2,
+                    "b": 2,
+                    "node": "b9e2d90a-39ce-4b5a-9cf5-5d2317a70f2a"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.ColorPropertyNode",
+            "guid": "638f5ab3-ca85-42a0-ad48-8ef33435bad7",
+            "x": -1207,
+            "y": 512,
+            "connections": [],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": "{\"_ref\":\"cf816e6d-cf93-4e97-bbcc-dba6aa8fb1ef\"}"
+        },
+        {
+            "type": "ZSG.MultiplyNode",
+            "guid": "0d8a2228-a95a-4297-801d-58e15d5a207a",
+            "x": -1102,
+            "y": 512,
+            "connections": [
+                {
+                    "a": 0,
+                    "b": 0,
+                    "node": "638f5ab3-ca85-42a0-ad48-8ef33435bad7"
+                },
+                {
+                    "a": 2,
+                    "b": 1,
+                    "node": "00917215-6907-49db-93e7-f472e470e1f2"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.SplitNode",
+            "guid": "07279085-ab0c-4b95-89fe-287165ed8c58",
+            "x": -754,
+            "y": 466,
+            "connections": [
+                {
+                    "a": 3,
+                    "b": 4,
+                    "node": "7f45c606-8d3e-4794-91d0-90d18daf38c0"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        },
+        {
+            "type": "ZSG.UnlitTemplate",
+            "guid": "ebdb85fc-af8a-4a05-8028-38309c5e6115",
+            "x": -648,
+            "y": 311,
+            "connections": [
+                {
+                    "a": 3,
+                    "b": 3,
+                    "node": "7f45c606-8d3e-4794-91d0-90d18daf38c0"
+                },
+                {
+                    "a": 3,
+                    "b": 4,
+                    "node": "07279085-ab0c-4b95-89fe-287165ed8c58"
+                }
+            ],
+            "precision": 0,
+            "preview": 0,
+            "previewDisabled": false,
+            "data": ""
+        }
+    ],
+    "groups": [
+        {
+            "x": -2149,
+            "y": -59,
+            "title": "Highlight Cutoff",
+            "elements": [
+                "8b9f564d-1ea1-4660-96e3-f60e89bf97a6",
+                "f6a379b7-0dd0-40c7-af7c-7bb15fcc4eeb",
+                "0e5dac89-eac2-4521-9c0c-316f11bd0dda",
+                "a026af75-6afe-4f6d-b473-7bf06d6c0556",
+                "00917215-6907-49db-93e7-f472e470e1f2",
+                "a2e00d91-f786-415e-b408-e85423a329d8",
+                "7f45c606-8d3e-4794-91d0-90d18daf38c0",
+                "9156794e-a16e-435f-8fb8-11a23b305200",
+                "638f5ab3-ca85-42a0-ad48-8ef33435bad7",
+                "0d8a2228-a95a-4297-801d-58e15d5a207a",
+                "c53c9ee4-0d0b-409e-b8c2-11771086ab57",
+                "9464fe12-c544-4904-bb95-2272cd123b86",
+                "074540b6-7130-4fbc-aca8-0a46ab021066",
+                "e4286ea2-a492-47a9-b16e-c00aee51bc64",
+                "c6aeccae-22da-4f4d-9a61-b8ce274acc20",
+                "9be97ac3-1fa1-4177-815f-185d0a119d21",
+                "f005c4fb-11ee-418b-8a11-cc9e8a7d78d3",
+                "30e1c651-989f-4b8e-a236-c667c6457a10",
+                "3d572d90-26e8-4338-8c15-64254bbed78a",
+                "37381b81-ca0f-437c-ae62-f80da3475978",
+                "8c878686-1e92-42db-aaf8-5d98018847a0",
+                "1d6d6660-188e-4a4d-bd3e-49ee1338f10e",
+                "ee26f5e3-55e3-4580-9c7a-d6e2a17770e3",
+                "b9e2d90a-39ce-4b5a-9cf5-5d2317a70f2a",
+                "f8af4c9e-b129-4744-94d4-f5e683e865bf",
+                "a8945d6a-b891-4f1d-9faf-454a1134a2c9",
+                "8e386bdd-f181-4870-8d7f-e3ec5cf55732",
+                "07279085-ab0c-4b95-89fe-287165ed8c58",
+                "ebdb85fc-af8a-4a05-8028-38309c5e6115"
+            ]
+        }
+    ]
+}

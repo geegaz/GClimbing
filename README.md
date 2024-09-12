@@ -1,6 +1,8 @@
 # Geegaz's Climbing System
 Another climbing system for VRChat, made with [UdonSharp](https://udonsharp.docs.vrchat.com/)
 
+**Ziplines addon:** https://github.com/geegaz/GClimbingSystem-Ziplines
+
 ## Features
 
 - Configurable climbing

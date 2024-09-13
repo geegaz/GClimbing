@@ -1,5 +1,5 @@
 # Geegaz's Climbing System
-Another climbing system for VRChat, made with [UdonSharp](https://udonsharp.docs.vrchat.com/)
+Another climbing system for VRChat, made with UdonSharp
 
 **Ziplines addon:** https://github.com/geegaz/GClimbingSystem-Ziplines
 
@@ -7,12 +7,12 @@ Another climbing system for VRChat, made with [UdonSharp](https://udonsharp.docs
 
 - Configurable climbing
 - Configurable walljump
+- Configurable ledge help to get over climbed objects easier
 - Highlight material & shader using [z3y's Graphlit](https://github.com/z3y/Graphlit)
 - VR & Desktop compatible
 
 ### Limitations
-- No stamina system
-- No mantling (getting over ledges) without walljump
+- Recommended height: 1.65m (~5.41ft)
 - Can only grab with one hand at a time
 
 ## Installation
@@ -20,7 +20,7 @@ Another climbing system for VRChat, made with [UdonSharp](https://udonsharp.docs
 **The highlight shader needs [z3y's Graphlit](https://github.com/z3y/Graphlit) to work properly ! Make sure you have it installed first, and add the material to the Climbing System prefab.**
 
 Download the repository, then **unpack it in the Assets folder** of your Unity project.
-You must have **UdonSharp** installed in your project for this package to work.
+You must have UdonSharp installed in your project for this package to work.
 
 UdonSharp has been integrated into the Worlds SDK - if it's not available in your project, check out their documentation for the installation steps: https://udonsharp.docs.vrchat.com/setup
 
@@ -43,11 +43,13 @@ Name | Description | Path
 **Desktop**
 - Left click to grab, right click to let go *(grab distance & speed configurable)*
 - Hold left click to move your body while grabbing *(distance configurable)*
-- Space while grabbing to walljump *(jump strength configurable)*
 
 **VR**
 - Hold left/right grip to grab, release to let go *(grab button & radius configurable)*
-- Move your hand fast & release to fling yourself *(max fling speed configurable)*
-- Jump button while grabbing to walljump *(jump strength configurable)*
+- Move your hand fast & release to fling yourself *(max fling speed & multiplier configurable)*
+
+**Common**
+- Jump while grabbing to walljump *(jump strength configurable)*
+- Grab on top of an object & let go to teleport at your grabbing point - must have enough space *(capsule size configurable)*
 
 *Visit my [procedural climbing world](https://vrchat.com/home/launch?worldId=wrld_5ba11740-e5b8-41cb-a38d-756d49fb4e14) to try it !*

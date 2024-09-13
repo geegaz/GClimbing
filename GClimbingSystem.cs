@@ -28,6 +28,7 @@ public class GClimbingSystem : UdonSharpBehaviour
     [Tooltip("Teleports the player at the grabbed point if the grabbed surface is facing up and there's enough space around")]
     [SerializeField] private bool ledgeHelpEnabled = true;
     [SerializeField] private LayerMask ledgeHelpeMask;
+    [SerializeField] private float ledgeHelpMaxAngle = 35f;
     [SerializeField] private float ledgeHelpCapsuleHeight = 2f;
     [SerializeField] private float ledgeHelpCapsuleRadius = 0.1f;
     [SerializeField] private float ledgeHelpCapsuleMargin = 0.01f;
@@ -249,10 +250,11 @@ public class GClimbingSystem : UdonSharpBehaviour
         {
             GetHeadPos(out Vector3 headPos, out Vector3 headDir);
             
-            if (_holdingMouseLeft) // Update head offset based on mouse dir while mouse is pressed
+            if (_holdingMouseLeft) // Update head offset based on mouse direction while left button is pressed
                 _lastHeadDir = headDir;
-            if (_lastHeadDistance > headDistance)
+            if (_lastHeadDistance > headDistance) // Smoothly move to the target position
                 _lastHeadDistance = Mathf.MoveTowards(_lastHeadDistance, headDistance, headMoveSpeed * Time.deltaTime);
+            
             climbingPos = (headPos + _lastHeadDir * _lastHeadDistance);
         }
 
@@ -260,7 +262,7 @@ public class GClimbingSystem : UdonSharpBehaviour
         Vector3 climbingOffset = HandTransform.position - climbingPos;
         _lastClimbedVelocity = climbingOffset * (1.0f / Time.deltaTime);
 
-        // Calculate object velocity (velocity of the object we're grabbing on)
+        // Calculate transform velocity (velocity of the object we're grabbing on)
         Vector3 transformOffset = HandTransform.position - _lastTransformPosition;
         _lastTransformVelocity = transformOffset * (1.0f / Time.deltaTime);
         _lastTransformPosition = HandTransform.position;
@@ -314,6 +316,8 @@ public class GClimbingSystem : UdonSharpBehaviour
             // Velocity buffering
             if (velocityBufferEnabled)
             {
+                // Get the average of the climbing velocity 
+                // during the last few frames
                 var vel = Vector3.zero;
                 for (int i = 0; i < _velocityBuffer.Length; i++)
                 {
@@ -322,12 +326,15 @@ public class GClimbingSystem : UdonSharpBehaviour
                 _lastClimbedVelocity = vel / _velocityBuffer.Length;
             }
 
+            // Clamp climbing velocity to something more acceptable,
+            // to avoid people getting flung too far when they get stuck under a ceiling or against a wall.
+            // Transform velocity is not affected, to allow moving objects to fling you far when climbed
             _lastClimbedVelocity = _lastTransformVelocity + 
                 Vector3.ClampMagnitude(_lastClimbedVelocity - _lastTransformVelocity, maxFlingSpeed) * flingSpeedMultiplier;
             localPlayer.SetVelocity(_lastClimbedVelocity);
         }
 
-        // Override gravity
+        // Reset gravity
         if (overrideGravity)
             localPlayer.SetGravityStrength(1f);
 
@@ -397,22 +404,22 @@ public class GClimbingSystem : UdonSharpBehaviour
         GetHeadPos(out Vector3 headPos, out Vector3 headDir);
         var handVec = _lastTransformPosition - headPos;
 
-        if (Physics.Raycast(headPos, handVec.normalized, out RaycastHit hit, handVec.magnitude * 1.5f, ledgeHelpeMask, QueryTriggerInteraction.Ignore)) 
+        if (Physics.Raycast(headPos, handVec.normalized, out RaycastHit hit, handVec.magnitude + 1f, ledgeHelpeMask, QueryTriggerInteraction.Ignore)) 
         {     
-            teleportPos = hit.point + Vector3.up * ledgeHelpCapsuleMargin;
-            var aboveSurface = Vector3.Dot(hit.normal, Vector3.up) > 0.5f;
-            // Check if there's enough space to pop the player there
-            if (aboveSurface && !Physics.CheckCapsule(
-                hit.point + Vector3.up * ledgeHelpCapsuleRadius, 
-                hit.point + Vector3.up * (ledgeHelpCapsuleHeight + ledgeHelpCapsuleRadius), 
+            var facingUp = Vector3.Angle(hit.normal, Vector3.up) < ledgeHelpMaxAngle;
+            // Check if the surface is facing up and there's enough space to teleport the player there
+            // Might have some issues with curved surfaces since we're checking a capsule,
+            // increase the margin or lower the max angle if that happens too often
+            if (facingUp && !Physics.CheckCapsule(
+                hit.point + Vector3.up * (ledgeHelpCapsuleRadius + ledgeHelpCapsuleMargin), 
+                hit.point + Vector3.up * (ledgeHelpCapsuleHeight + ledgeHelpCapsuleRadius + ledgeHelpCapsuleMargin), 
                 ledgeHelpCapsuleRadius - ledgeHelpCapsuleMargin, 
                 ledgeHelpeMask, QueryTriggerInteraction.Ignore)) 
             {
-                
+                teleportPos = hit.point;
                 return true;
             }
         }
-        
         teleportPos = Vector3.zero;
         return false;
     }
@@ -426,7 +433,8 @@ public class GClimbingSystem : UdonSharpBehaviour
         if (_sendEventsToClimbedObjects) 
         {
             UdonBehaviour behavior = (UdonBehaviour)climbed_object.GetComponent(typeof(UdonBehaviour));
-            if (behavior) behavior.SendCustomEvent(_grabbedEvent);
+            if (behavior) 
+                behavior.SendCustomEvent(_grabbedEvent);
         }
         foreach (UdonBehaviour target in _eventTargets)
         {
@@ -440,7 +448,8 @@ public class GClimbingSystem : UdonSharpBehaviour
         if (_sendEventsToClimbedObjects) 
         {
             UdonBehaviour behavior = (UdonBehaviour)climbed_object.GetComponent(typeof(UdonBehaviour));
-            if (behavior) behavior.SendCustomEvent(_droppedEvent);
+            if (behavior) 
+                behavior.SendCustomEvent(_droppedEvent);
         }
         foreach (UdonBehaviour target in _eventTargets)
         {
@@ -455,9 +464,7 @@ public class GClimbingSystem : UdonSharpBehaviour
     public bool IsGrabbing(Transform tf) 
     {
         if (climbing) 
-        {
             return HandTransform.parent == tf;
-        }
         return false;
     }
     

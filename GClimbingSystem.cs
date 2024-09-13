@@ -1,6 +1,5 @@
 ﻿
 using System;
-using BestHTTP.SecureProtocol.Org.BouncyCastle.Crypto.Paddings;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -25,7 +24,7 @@ public class GClimbingSystem : UdonSharpBehaviour
     [SerializeField] private bool overrideGravity = true;
     [Tooltip("Makes an average of the previous velocities to fake the conservation of force when letting go")]
     [SerializeField] private bool velocityBufferEnabled = true;
-    [Tooltip("Teleports the player at the grabbed point if the grabbed surface is facing up and there's enough space around")]
+    [Tooltip("Teleports the player at the grabbing point if the grabbed surface is facing up and there's enough space around")]
     [SerializeField] private bool ledgeHelpEnabled = true;
     [SerializeField] private LayerMask ledgeHelpeMask;
     [SerializeField] private float ledgeHelpMaxAngle = 35f;

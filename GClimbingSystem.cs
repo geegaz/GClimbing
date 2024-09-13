@@ -1,5 +1,6 @@
 ﻿
 using System;
+using BestHTTP.SecureProtocol.Org.BouncyCastle.Crypto.Paddings;
 using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
@@ -8,21 +9,27 @@ using VRC.Udon.Common;
 
 [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
 public class GClimbingSystem : UdonSharpBehaviour
-{
+{  
     [SerializeField] private Transform HandTransform;
     [SerializeField] private LayerMask climableMask;
     [SerializeField] private Material climbingHighlightMaterial;
 
+    [Header("Walljump")]
     [Space]
     [SerializeField] private bool walljumpEnabled = true;
     [SerializeField] private float walljumpSpeed = 5f;
 
-    [Header("VR Options")]
+    [Header("Climbing")]
+    [Space]
+    [SerializeField] private bool velocityBufferEnabled = true;
+
+    [Header("VR Settings")]
     [SerializeField] private bool useGrabButton = true;
     [SerializeField] private float handRadius = 0.1f;
     [SerializeField] private float maxFlingSpeed = 6f;
+    [SerializeField] private float flingSpeedMultiplier = 1.2f;
 
-    [Header("Desktop Options")]
+    [Header("Desktop Settings")]
     [SerializeField] private float headReach = 2f;
     [SerializeField] private float headDistance = 0.5f;
     [SerializeField] private float headMoveSpeed = 5f;
@@ -33,19 +40,21 @@ public class GClimbingSystem : UdonSharpBehaviour
     [SerializeField] private string _grabbedEvent = "ClimbingGrabbed";
     [SerializeField] private string _droppedEvent = "ClimbingDropped";
 
-    [Space]
-    public bool climbing = false;
-    public HandType climbingHand;
-
-    // Desktop calculations
+    // Desktop-specific
     private Vector3 _lastHeadDir;
     private float _lastHeadDistance;
 
-    // VR calculations
+    // Climbing & velocity
     private Vector3 _lastClimbedVelocity;
     private Vector3 _lastTransformPosition;
     private Vector3 _lastTransformVelocity;
     private Transform _lastClimbedTransform;
+
+    private Collider[] grabSurfaces = new Collider[1];
+    private Vector3[] _velocityBuffer = new Vector3[5];
+
+    [NonSerialized] public bool climbing = false;
+    [NonSerialized] public HandType climbingHand;
     
     // Cache local player and VR status
     [NonSerialized] public VRCPlayerApi localPlayer;
@@ -88,7 +97,7 @@ public class GClimbingSystem : UdonSharpBehaviour
     {
         if (value && walljumpEnabled && climbing) {
             // Let go with jump force
-            DropWithBoost(Vector3.up * walljumpSpeed);
+            Drop(Vector3.up * walljumpSpeed);
         }
     }
 
@@ -148,7 +157,7 @@ public class GClimbingSystem : UdonSharpBehaviour
                 }
             }
             else {
-                if (!value && climbing && !HasPickup())
+                if (!value && climbing && !HasPickup(VRC_Pickup.PickupHand.Right))
                     Drop(); // Drop on right click if the player doesn't have a pickup
             }
         }
@@ -177,7 +186,6 @@ public class GClimbingSystem : UdonSharpBehaviour
             // Update from raycast
             GetHeadPos(out Vector3 headPos, out Vector3 headDir);
 
-            //_rightHandHighlight = Mathf.Lerp(_rightHandHighlight, climbing && _mouseGrabPressed ? 0f : 1f, 0.2f);
             Vector3 targetPos;
             if (Physics.Raycast(headPos, headDir, out RaycastHit hit, headReach, climableMask, QueryTriggerInteraction.Collide)) {
                 targetPos = hit.point;
@@ -209,12 +217,18 @@ public class GClimbingSystem : UdonSharpBehaviour
             climbingPos = (headPos + _lastHeadDir * _lastHeadDistance);
         }
 
+        // Calculate climbing velocity (total velocity to reach the grabbing point)
         Vector3 climbingOffset = HandTransform.position - climbingPos;
         _lastClimbedVelocity = climbingOffset * (1.0f / Time.deltaTime);
 
+        // Calculate object velocity (velocity of the object we're grabbing on)
         Vector3 transformOffset = HandTransform.position - _lastTransformPosition;
         _lastTransformVelocity = transformOffset * (1.0f / Time.deltaTime);
         _lastTransformPosition = HandTransform.position;
+
+        // Store velocity in buffer for smoothing on drop
+        if (velocityBufferEnabled)
+            _velocityBuffer[Time.frameCount % _velocityBuffer.Length] = _lastClimbedVelocity;
 
         // Apply velocity
         localPlayer.SetVelocity(_lastClimbedVelocity);
@@ -226,7 +240,7 @@ public class GClimbingSystem : UdonSharpBehaviour
         _lastClimbedVelocity = Vector3.zero;
         _lastTransformVelocity = Vector3.zero;
         _lastTransformPosition = HandTransform.position;
-        localPlayer.SetGravityStrength(0f);
+        //localPlayer.SetGravityStrength(0f);
 
         // Send events
         if (climbing) SendDroppedEvent(_lastClimbedTransform.gameObject); // previous climbed object
@@ -238,14 +252,26 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     public void Drop() 
     {
-        DropWithBoost(Vector3.zero);
+        Drop(Vector3.zero);
     }
 
-    public void DropWithBoost(Vector3 boost) 
+    public void Drop(Vector3 boost) 
     {
-        _lastClimbedVelocity = _lastTransformVelocity + Vector3.ClampMagnitude(_lastClimbedVelocity - _lastTransformVelocity, maxFlingSpeed);
+        if (velocityBufferEnabled) {
+            // Make an average of the previous velocities
+            // to fake the conservation of force when letting go
+            var vel = Vector3.zero;
+            for (int i = 0; i < _velocityBuffer.Length; i++)
+            {
+                vel += _velocityBuffer[i];
+            }
+            _lastClimbedVelocity = vel / _velocityBuffer.Length;
+        }
+        
+        _lastClimbedVelocity = _lastTransformVelocity + 
+            Vector3.ClampMagnitude(_lastClimbedVelocity - _lastTransformVelocity, maxFlingSpeed) * flingSpeedMultiplier;
         localPlayer.SetVelocity(_lastClimbedVelocity + boost);
-        localPlayer.SetGravityStrength(1f);
+        //localPlayer.SetGravityStrength(1f);
 
         // Send events
         SendDroppedEvent(HandTransform.parent.gameObject);
@@ -268,7 +294,6 @@ public class GClimbingSystem : UdonSharpBehaviour
     {
         GetHandPos(hand, out Vector3 handPos);
 
-        Collider[] grabSurfaces = new Collider[1];
         if(Physics.OverlapSphereNonAlloc(handPos, handRadius, grabSurfaces, climableMask, QueryTriggerInteraction.Collide) >= 1) {
             // Store previous transform to send let go events
             _lastClimbedTransform = HandTransform.parent;
@@ -312,8 +337,8 @@ public class GClimbingSystem : UdonSharpBehaviour
         return false;
     }
 
-    public bool HasPickup() {
-        return localPlayer.GetPickupInHand(VRC_Pickup.PickupHand.Right) != null;
+    public bool HasPickup(VRC_Pickup.PickupHand hand) {
+        return localPlayer.GetPickupInHand(hand) != null;
     }
 
     private void GetHandPos(HandType hand, out Vector3 hand_pos) {

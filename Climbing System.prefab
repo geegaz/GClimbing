@@ -63,9 +63,15 @@ MonoBehaviour:
   climbingHighlightMaterial: {fileID: 0}
   walljumpEnabled: 1
   walljumpSpeed: 5
+  velocityBufferEnabled: 1
+  ledgeHelpEnabled: 1
+  ledgeHelpeMask:
+    serializedVersion: 2
+    m_Bits: 8388609
   useGrabButton: 1
   handRadius: 0.1
   maxFlingSpeed: 6
+  flingSpeedMultiplier: 1.2
   headReach: 2
   headDistance: 0.5
   headMoveSpeed: 5
@@ -73,8 +79,6 @@ MonoBehaviour:
   _eventTargets: []
   _grabbedEvent: ClimbingGrabbed
   _droppedEvent: ClimbingDropped
-  climbing: 0
-  climbingHand: 0
 --- !u!114 &6207670217296417743
 MonoBehaviour:
   m_ObjectHideFlags: 0

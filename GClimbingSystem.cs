@@ -21,10 +21,20 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     [Header("Climbing")]
     [Space]
+    [Tooltip("Sets the player's gravity strength to 0 while climbing, helps prevent jittering")]
+    [SerializeField] private bool overrideGravity = true;
+    [Tooltip("Makes an average of the previous velocities to fake the conservation of force when letting go")]
     [SerializeField] private bool velocityBufferEnabled = true;
+    [Tooltip("Teleports the player at the grabbed point if the grabbed surface is facing up and there's enough space around")]
+    [SerializeField] private bool ledgeHelpEnabled = true;
+    [SerializeField] private LayerMask ledgeHelpeMask;
+    [SerializeField] private float ledgeHelpCapsuleHeight = 2f;
+    [SerializeField] private float ledgeHelpCapsuleRadius = 0.1f;
+    [SerializeField] private float ledgeHelpCapsuleMargin = 0.01f;
 
     [Header("VR Settings")]
-    [SerializeField] private bool useGrabButton = true;
+    [Tooltip("Use the grip buttons instead of the triggers to climb")]
+    [SerializeField] private bool useGripButtons = true;
     [SerializeField] private float handRadius = 0.1f;
     [SerializeField] private float maxFlingSpeed = 6f;
     [SerializeField] private float flingSpeedMultiplier = 1.2f;
@@ -71,20 +81,24 @@ public class GClimbingSystem : UdonSharpBehaviour
     private void Start()
     {
         localPlayer = Networking.LocalPlayer;
-        if (localPlayer != null) inVR = localPlayer.IsUserInVR();
-        if (HandTransform) HandTransform.localScale = Vector3.one * handRadius;
+        if (localPlayer != null) 
+            inVR = localPlayer.IsUserInVR();
+        if (HandTransform) 
+            HandTransform.localScale = Vector3.one * handRadius;
     }
 
     private void Update() 
     {
-        if (climbingHighlightMaterial) {
+        if (climbingHighlightMaterial) 
+        {
             UpdateMaterial();
         }
     }
 
     public override void PostLateUpdate()
     {
-        if (climbing) {
+        if (climbing) 
+        {
             UpdateGrab(climbingHand);
         }
     }
@@ -95,19 +109,22 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     public override void InputJump(bool value, UdonInputEventArgs args)
     {
-        if (value && walljumpEnabled && climbing) {
+        if (value && walljumpEnabled && climbing) 
+        {
             // Let go with jump force
-            Drop(Vector3.up * walljumpSpeed);
+            DropWithBoost(Vector3.up * walljumpSpeed);
         }
     }
 
     public override void InputUse(bool value, UdonInputEventArgs args)
     {
-        if (inVR) {
-            if (useGrabButton) return; // Skip execution
+        if (inVR) 
+        {
+            if (useGripButtons) return; // Skip execution
             ProcessInput(value, args.handType);
         }
-        else {
+        else 
+        {
             // The Use input is always Left Click on Desktop
             ProcessInput(value, HandType.LEFT);
         }
@@ -115,19 +132,22 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     public override void InputGrab(bool value, UdonInputEventArgs args)
     {
-        if (inVR) {
-            if (!useGrabButton) return; // Skip execution
+        if (inVR) 
+        {
+            if (!useGripButtons) return; // Skip execution
             ProcessInput(value, args.handType);
         }
     }
 
     public override void InputDrop(bool value, UdonInputEventArgs args)
     {
-        if (inVR) {
+        if (inVR) 
+        {
             Debug.LogError("Climbing system detected InputDrop event in VR - this is not handled");
             return; // Not handled - skip execution
         }
-        else {
+        else 
+        {
             // The Drop input is always Right Click on PC
             ProcessInput(value, HandType.RIGHT);
         }
@@ -136,40 +156,55 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     private void ProcessInput(bool value, HandType hand) 
     {
-        if (inVR) {
-            if (value && !IsClimbingWith(hand))
-                if (TestGrabVR(hand))
-                    Grab(hand);
-            if (!value && IsClimbingWith(hand))
-                Drop();
+        if (inVR) 
+        {
+            if (value && !IsClimbingWithHand(hand) && TestGrabVR(hand)) 
+            {
+                Grab(hand);
+            }
+            if (!value && IsClimbingWithHand(hand))
+            {
+                if (ledgeHelpEnabled && TestLedgeHelp(out Vector3 pos))
+                    DropWithTeleport(pos);
+                else
+                    Drop();
+            }
         }
-        else {
-            // Desktop
-            if (hand == HandType.LEFT) {
-                if (value && TestGrabDesktop()) {
+        else // Desktop
+        {
+            // HandType is used to identify click
+            if (hand == HandType.LEFT) 
+            {
+                if (value && TestGrabDesktop()) 
+                {
                     _holdingMouseLeft = true; // Don't change the head distance
                     Grab(HandType.RIGHT); // Use the right hand by default
                 }
-                else {
+                else 
+                {
                     _holdingMouseLeft = false;
-                    if (climbing && localPlayer.IsPlayerGrounded())
-                        Drop(); // Drop if we let go while on ground
+                    if (climbing) 
+                    {
+                        if (localPlayer.IsPlayerGrounded())
+                            Drop(true);
+                        else if (ledgeHelpEnabled && TestLedgeHelp(out Vector3 pos))
+                            DropWithTeleport(pos);
+                    }
                 }
             }
-            else {
-                if (!value && climbing && !HasPickup(VRC_Pickup.PickupHand.Right))
-                    Drop(); // Drop on right click if the player doesn't have a pickup
-            }
+            else if (!value && climbing && !HasPickupInHand(VRC_Pickup.PickupHand.Right))
+                Drop(); // Drop on right click if the player doesn't have a pickup
         }
     }
 
     #endregion
 
-    #region Climbing Actions
+    #region Climbing
 
     private void UpdateMaterial() 
     {
-        if (inVR) {
+        if (inVR) 
+        {
             // Update from tracked hand position
             GetHandPos(HandType.RIGHT, out Vector3 rightHandPos);
             GetHandPos(HandType.LEFT, out Vector3 leftHandPos);
@@ -182,17 +217,19 @@ public class GClimbingSystem : UdonSharpBehaviour
             climbingHighlightMaterial.SetVector("_RightHandPosition", new Vector4(rightHandPos.x, rightHandPos.y, rightHandPos.z, _rightHandHighlight));
             climbingHighlightMaterial.SetVector("_LeftHandPosition", new Vector4(leftHandPos.x, leftHandPos.y, leftHandPos.z, _leftHandHighlight));
         }
-        else {
+        else 
+        {
             // Update from raycast
             GetHeadPos(out Vector3 headPos, out Vector3 headDir);
 
             Vector3 targetPos;
-            if (Physics.Raycast(headPos, headDir, out RaycastHit hit, headReach, climableMask, QueryTriggerInteraction.Collide)) {
+            if (Physics.Raycast(headPos, headDir, out RaycastHit hit, headReach, climableMask, QueryTriggerInteraction.Collide)) 
+            {
                 targetPos = hit.point;
                 climbingHighlightMaterial.SetFloat("_RightHandDist", climbing && _holdingMouseLeft ? 0f : handRadius);
             }
-                
-            else {
+            else 
+            {
                 targetPos = headPos + headDir * headReach;
                 climbingHighlightMaterial.SetFloat("_RightHandDist", 0f);
             }
@@ -204,10 +241,12 @@ public class GClimbingSystem : UdonSharpBehaviour
     private void UpdateGrab(HandType hand) 
     {
         Vector3 climbingPos;
-        if (inVR) {
+        if (inVR) 
+        {
             GetHandPos(hand, out climbingPos);
         }
-        else {
+        else 
+        {
             GetHeadPos(out Vector3 headPos, out Vector3 headDir);
             
             if (_holdingMouseLeft) // Update head offset based on mouse dir while mouse is pressed
@@ -234,44 +273,63 @@ public class GClimbingSystem : UdonSharpBehaviour
         localPlayer.SetVelocity(_lastClimbedVelocity);
     }
 
+    #region Climbing Actions
+
     public void Grab(HandType hand) 
     {
         // Reset last velocity
         _lastClimbedVelocity = Vector3.zero;
         _lastTransformVelocity = Vector3.zero;
         _lastTransformPosition = HandTransform.position;
-        //localPlayer.SetGravityStrength(0f);
+
+        // Override gravity
+        if (overrideGravity)
+            localPlayer.SetGravityStrength(0f);
 
         // Send events
-        if (climbing) SendDroppedEvent(_lastClimbedTransform.gameObject); // previous climbed object
+        if (climbing) 
+            SendDroppedEvent(_lastClimbedTransform.gameObject); // previous climbed object
         SendGrabbedEvent(HandTransform.parent.gameObject); // current climbed object
 
         climbingHand = hand;
         climbing = true;
     }
 
-    public void Drop() 
+    public void ForceGrab(Transform tf, HandType hand, Vector3 offset) 
     {
-        Drop(Vector3.zero);
+        HandTransform.position = tf.position + offset;
+        HandTransform.parent = tf;
+
+        Grab(hand);
     }
 
-    public void Drop(Vector3 boost) 
+    public void Drop(bool resetVelocity = false) 
     {
-        if (velocityBufferEnabled) {
-            // Make an average of the previous velocities
-            // to fake the conservation of force when letting go
-            var vel = Vector3.zero;
-            for (int i = 0; i < _velocityBuffer.Length; i++)
-            {
-                vel += _velocityBuffer[i];
-            }
-            _lastClimbedVelocity = vel / _velocityBuffer.Length;
+        if (resetVelocity) 
+        {
+            localPlayer.SetVelocity(Vector3.zero);
         }
-        
-        _lastClimbedVelocity = _lastTransformVelocity + 
-            Vector3.ClampMagnitude(_lastClimbedVelocity - _lastTransformVelocity, maxFlingSpeed) * flingSpeedMultiplier;
-        localPlayer.SetVelocity(_lastClimbedVelocity + boost);
-        //localPlayer.SetGravityStrength(1f);
+        else 
+        {
+            // Velocity buffering
+            if (velocityBufferEnabled)
+            {
+                var vel = Vector3.zero;
+                for (int i = 0; i < _velocityBuffer.Length; i++)
+                {
+                    vel += _velocityBuffer[i];
+                }
+                _lastClimbedVelocity = vel / _velocityBuffer.Length;
+            }
+
+            _lastClimbedVelocity = _lastTransformVelocity + 
+                Vector3.ClampMagnitude(_lastClimbedVelocity - _lastTransformVelocity, maxFlingSpeed) * flingSpeedMultiplier;
+            localPlayer.SetVelocity(_lastClimbedVelocity);
+        }
+
+        // Override gravity
+        if (overrideGravity)
+            localPlayer.SetGravityStrength(1f);
 
         // Send events
         SendDroppedEvent(HandTransform.parent.gameObject);
@@ -279,22 +337,33 @@ public class GClimbingSystem : UdonSharpBehaviour
         climbing = false;
     }
 
-    public void DropGrabbed(Transform tf) {
+    public void DropWithBoost(Vector3 boost) 
+    {
+        Drop(false);
+        localPlayer.SetVelocity(_lastClimbedVelocity + boost);
+    }
+
+    public void DropWithTeleport(Vector3 pos) 
+    {
+        Drop(true);
+        localPlayer.TeleportTo(pos, localPlayer.GetRotation(), VRC_SceneDescriptor.SpawnOrientation.Default, true);
+    }
+
+    public void DropGrabbed(Transform tf) 
+    {
         if (IsGrabbing(tf)) Drop();
     }
 
-    public void ForceGrab(Transform tf, HandType hand, Vector3 offset) {
-        HandTransform.position = tf.position + offset;
-        HandTransform.parent = tf;
+    #endregion
 
-        Grab(hand);
-    }
+    #region Climbing Tests
 
     private bool TestGrabVR(HandType hand) 
     {
         GetHandPos(hand, out Vector3 handPos);
 
-        if(Physics.OverlapSphereNonAlloc(handPos, handRadius, grabSurfaces, climableMask, QueryTriggerInteraction.Collide) >= 1) {
+        if(Physics.OverlapSphereNonAlloc(handPos, handRadius, grabSurfaces, climableMask, QueryTriggerInteraction.Collide) >= 1) 
+        {
             // Store previous transform to send let go events
             _lastClimbedTransform = HandTransform.parent;
             // Reparent hand transform to new parent
@@ -309,7 +378,8 @@ public class GClimbingSystem : UdonSharpBehaviour
     {
         GetHeadPos(out Vector3 headPos, out Vector3 headDir);
 
-        if (Physics.Raycast(headPos, headDir, out RaycastHit hit, headReach, climableMask, QueryTriggerInteraction.Collide)) {
+        if (Physics.Raycast(headPos, headDir, out RaycastHit hit, headReach, climableMask, QueryTriggerInteraction.Collide)) 
+        {
             // Store previous transform to send let go events
             _lastClimbedTransform = HandTransform.parent;
             // Reparent hand transform to new parent
@@ -322,38 +392,39 @@ public class GClimbingSystem : UdonSharpBehaviour
         return false;
     }
 
-    #endregion
+    private bool TestLedgeHelp(out Vector3 teleportPos)
+    {
+        GetHeadPos(out Vector3 headPos, out Vector3 headDir);
+        var handVec = _lastTransformPosition - headPos;
 
-    #region Climbing Utilities
-
-    public bool IsClimbingWith(HandType hand) {
-        return climbing && climbingHand == hand;
-    }
-
-    public bool IsGrabbing(Transform tf) {
-        if (climbing) {
-            return HandTransform.parent == tf;
+        if (Physics.Raycast(headPos, handVec.normalized, out RaycastHit hit, handVec.magnitude * 1.5f, ledgeHelpeMask, QueryTriggerInteraction.Ignore)) 
+        {     
+            teleportPos = hit.point + Vector3.up * ledgeHelpCapsuleMargin;
+            var aboveSurface = Vector3.Dot(hit.normal, Vector3.up) > 0.5f;
+            // Check if there's enough space to pop the player there
+            if (aboveSurface && !Physics.CheckCapsule(
+                hit.point + Vector3.up * ledgeHelpCapsuleRadius, 
+                hit.point + Vector3.up * (ledgeHelpCapsuleHeight + ledgeHelpCapsuleRadius), 
+                ledgeHelpCapsuleRadius - ledgeHelpCapsuleMargin, 
+                ledgeHelpeMask, QueryTriggerInteraction.Ignore)) 
+            {
+                
+                return true;
+            }
         }
+        
+        teleportPos = Vector3.zero;
         return false;
     }
 
-    public bool HasPickup(VRC_Pickup.PickupHand hand) {
-        return localPlayer.GetPickupInHand(hand) != null;
-    }
+    #endregion
 
-    private void GetHandPos(HandType hand, out Vector3 hand_pos) {
-        VRCPlayerApi.TrackingData handTrackingData = hand == HandType.LEFT ? localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.LeftHand) : localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
-        hand_pos = handTrackingData.position;
-    }
+    #region Climbing Events
 
-    private void GetHeadPos(out Vector3 head_pos, out Vector3 head_dir) {
-         VRCPlayerApi.TrackingData headTrackingData = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
-         head_pos = headTrackingData.position;
-         head_dir = headTrackingData.rotation * Vector3.forward;
-    }
-
-    private void SendGrabbedEvent(GameObject climbed_object) {
-        if (_sendEventsToClimbedObjects) {
+    private void SendGrabbedEvent(GameObject climbed_object) 
+    {
+        if (_sendEventsToClimbedObjects) 
+        {
             UdonBehaviour behavior = (UdonBehaviour)climbed_object.GetComponent(typeof(UdonBehaviour));
             if (behavior) behavior.SendCustomEvent(_grabbedEvent);
         }
@@ -364,8 +435,10 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     }
 
-    private void SendDroppedEvent(GameObject climbed_object) {
-        if (_sendEventsToClimbedObjects) {
+    private void SendDroppedEvent(GameObject climbed_object) 
+    {
+        if (_sendEventsToClimbedObjects) 
+        {
             UdonBehaviour behavior = (UdonBehaviour)climbed_object.GetComponent(typeof(UdonBehaviour));
             if (behavior) behavior.SendCustomEvent(_droppedEvent);
         }
@@ -377,5 +450,42 @@ public class GClimbingSystem : UdonSharpBehaviour
 
     #endregion
 
+    #region Climbing Utilities
+
+    public bool IsGrabbing(Transform tf) 
+    {
+        if (climbing) 
+        {
+            return HandTransform.parent == tf;
+        }
+        return false;
+    }
+    
+    public bool HasPickupInHand(VRC_Pickup.PickupHand hand) 
+    {
+        return localPlayer.GetPickupInHand(hand) != null;
+    }
+    
+    public bool IsClimbingWithHand(HandType hand) 
+    {
+        return climbing && climbingHand == hand;
+    }
+
+    private void GetHandPos(HandType hand, out Vector3 hand_pos) 
+    {
+        VRCPlayerApi.TrackingData handTrackingData = hand == HandType.LEFT ? localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.LeftHand) : localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
+        hand_pos = handTrackingData.position;
+    }
+
+    private void GetHeadPos(out Vector3 head_pos, out Vector3 head_dir) 
+    {
+         VRCPlayerApi.TrackingData headTrackingData = localPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+         head_pos = headTrackingData.position;
+         head_dir = headTrackingData.rotation * Vector3.forward;
+    }
+
+    #endregion
+
+    #endregion
 }
 
